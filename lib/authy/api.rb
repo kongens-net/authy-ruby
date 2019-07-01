@@ -25,7 +25,7 @@ module Authy
       }
 
       url = "#{Authy.api_uri}/protected/json/users/new"
-      response = http_client.post(url, :body => escape_query(params), :header => default_header(api_key: api_key))
+      response = http_client.post(url, :body => escape_query(params), :header => default_header(api_key))
 
       Authy::User.new(response)
     end
@@ -107,15 +107,13 @@ module Authy
     private
 
     def self.post_request(uri, params = {})
-      header_ = default_header(params: params)
-
       uri_params = keys_to_verify(uri, params)
       state, error = validate_for_url(uri_params, params)
 
       response = if state
                    url = "#{Authy.api_uri}/#{eval_uri(uri, params)}"
                    params = clean_uri_params(uri_params, params)
-                   http_client.post(url, :body => escape_query(params), header: header_)
+                   http_client.post(url, :body => escape_query(params), :header => default_header)
                  else
                    build_error_response(error)
                  end
@@ -123,14 +121,12 @@ module Authy
     end
 
     def self.get_request(uri, params = {})
-      header_ = default_header(params: params)
-
       uri_params = keys_to_verify(uri, params)
       state, error = validate_for_url(uri_params, params)
       response = if state
                    url = "#{Authy.api_uri}/#{eval_uri(uri, params)}"
                    params = clean_uri_params(uri_params, params)
-                   http_client.get(url, params, header_)
+                   http_client.get(url, params, default_header)
                  else
                    build_error_response(error)
                  end
@@ -169,20 +165,11 @@ module Authy
       return Authy::Response.new(response)
     end
 
-    def self.default_header(api_key: nil, params: {})
-      header = {
+    def self.default_header(api_key = nil)
+      {
         "X-Authy-API-Key" => api_key || Authy.api_key,
         "User-Agent" => Authy.user_agent
       }
-
-      api_key_ = params.delete(:api_key) || params.delete("api_key")
-
-      if api_key_ && api_key_.strip != ""
-        AUTHY_LOGGER.warn("[DEPRECATED]: The Authy API key should not be sent as a parameter. Please send the HTTP header 'X-Authy-API-Key' instead.")
-        header["X-Authy-API-Key"] = api_key_
-      end
-
-      return header
     end
 
   end
