@@ -48,7 +48,7 @@ module Authy
       return if test_hash.nil? # Allow nil hash
 
       raise "Hash expected. Got: #{test_hash.class}" unless test_hash.is_a? Hash
-      test_hash = test_hash.map { |k, v| [k, v.to_s] }.to_h
+      test_hash = Hash[test_hash.map { |k, v| [k, v.to_s] }]
     end
 
     def self.clean_logos!(logos)
@@ -64,7 +64,7 @@ module Authy
 
         # We ignore any additional parameter on the logos, and truncate
         # string size to the maximum allowed.
-        { res => res[0, MAX_STRING_SIZE], url => url[0, MAX_STRING_SIZE] }
+        { :res => res[0, MAX_STRING_SIZE], :url => url[0, MAX_STRING_SIZE] }
       end
     end
   end
